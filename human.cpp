@@ -1,10 +1,10 @@
 /***************************************************************************
 
-    file                 : human_ros.cpp
+    file                 : human.cpp
     created              : Sat Mar 18 23:16:38 CET 2000
     copyright            : (C) 2000-2013 by Eric Espie, Bernhard Wymann
     email                : torcs@free.fr
-    version              : $Id: human_ros.cpp,v 1.45.2.15 2013/08/31 23:46:13 berniw Exp $
+    version              : $Id: human.cpp,v 1.45.2.15 2013/08/31 23:46:13 berniw Exp $
 
  ***************************************************************************/
 
@@ -20,7 +20,7 @@
 /** @file   
     		
     @author	<a href=mailto:torcs@free.fr>Eric Espie</a>
-    @version	$Id: human_ros.cpp,v 1.45.2.15 2013/08/31 23:46:13 berniw Exp $
+    @version	$Id: human.cpp,v 1.45.2.15 2013/08/31 23:46:13 berniw Exp $
 */
 
 
@@ -45,7 +45,7 @@
 
 #include <playerpref.h>
 #include "pref.h"
-#include "human_ros.h"
+#include "human.h"
 
 #define DRWD 0
 #define DFWD 1
@@ -187,7 +187,7 @@ InitFuncPt(int index, void *pt)
 
 /*
  * Function
- *	human_ros
+ *	human
  *
  * Description
  *	DLL entry point (general to all types of modules)
@@ -214,7 +214,7 @@ human(tModInfo *modInfo)
 
 	memset(modInfo, 0, 10*sizeof(tModInfo));
 
-	snprintf(buf, BUFSIZE, "%sdrivers/human_ros/human_ros.xml", GetLocalDir());
+	snprintf(buf, BUFSIZE, "%sdrivers/human/human.xml", GetLocalDir());
 	void *DrvInfo = GfParmReadFile(buf, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
 
 	if (DrvInfo != NULL) {
@@ -245,10 +245,10 @@ human(tModInfo *modInfo)
  *
  *
  * Description
- *	search under drivers/human_ros/tracks/<trackname>/car-<model>-<index>.xml
- *		     drivers/human_ros/car-<model>-<index>.xml
- *		     drivers/human_ros/tracks/<trackname>/car-<model>.xml
- *		     drivers/human_ros/car-<model>.xml
+ *	search under drivers/human/tracks/<trackname>/car-<model>-<index>.xml
+ *		     drivers/human/car-<model>-<index>.xml
+ *		     drivers/human/tracks/<trackname>/car-<model>.xml
+ *		     drivers/human/car-<model>.xml
  *
  * Parameters
  *
@@ -271,7 +271,7 @@ static void initTrack(int index, tTrack* track, void *carHandle, void **carParmH
 	curTrack = track;
 
 	snprintf(sstring, BUFSIZE, "Robots/index/%d", index);
-	snprintf(buf, BUFSIZE, "%sdrivers/human_ros/human_ros.xml", GetLocalDir());
+	snprintf(buf, BUFSIZE, "%sdrivers/human/human.xml", GetLocalDir());
 	void *DrvInfo = GfParmReadFile(buf, GFPARM_RMODE_REREAD | GFPARM_RMODE_CREAT);
 	carname = "";
 	if (DrvInfo != NULL) {
@@ -281,24 +281,24 @@ static void initTrack(int index, tTrack* track, void *carHandle, void **carParmH
 	*carParmHandle = NULL;
 	// If session type is "race" and we have a race setup use it
 	if (s->_raceType == RM_TYPE_RACE) {
-		*carParmHandle = RtParmReadSetup(RACE, "human_ros", index, track->internalname, carname);
+		*carParmHandle = RtParmReadSetup(RACE, "human", index, track->internalname, carname);
 	}
 
 	// If session type is "qualifying" and we have a qualifying setup use it, use qualifying setup as 
 	// fallback if not race setup is available
 	if (s->_raceType == RM_TYPE_QUALIF || (*carParmHandle == NULL && s->_raceType == RM_TYPE_RACE)) {
-		*carParmHandle = RtParmReadSetup(QUALIFYING, "human_ros", index, track->internalname, carname);
+		*carParmHandle = RtParmReadSetup(QUALIFYING, "human", index, track->internalname, carname);
 	}
 
 	// If we have not yet loaded a setup we have not found a fitting one or want to use the practice setup,
 	// so try to load this
 	if (*carParmHandle == NULL) {
-		*carParmHandle = RtParmReadSetup(PRACTICE, "human_ros", index, track->internalname, carname);
+		*carParmHandle = RtParmReadSetup(PRACTICE, "human", index, track->internalname, carname);
 	}
 
 	// Absolute fallback, nothing found
 	if (*carParmHandle == NULL) {
-		snprintf(sstring, BUFSIZE, "%sdrivers/human_ros/car.xml", GetLocalDir ());
+		snprintf(sstring, BUFSIZE, "%sdrivers/human/car.xml", GetLocalDir ());
 		*carParmHandle = GfParmReadFile(sstring, GFPARM_RMODE_REREAD);
 	}
 
