@@ -971,7 +971,7 @@ static tdble getAutoClutch(int idx, int gear, int newgear, tCarElt *car)
  */
 static void drive_mt(int index, tCarElt* car, tSituation *s)
 {
-	printf("drive_mt %f\n",car->_speed_x);
+	printf("drive_mt_ros %f\n",car->_speed_x);
 	int i;
 	int idx = index - 1;
 	tControlCmd	*cmd = HCtx[idx]->CmdControl;
@@ -1042,7 +1042,7 @@ static void drive_mt(int index, tCarElt* car, tSituation *s)
  */
 static void drive_at(int index, tCarElt* car, tSituation *s)
 {
-	printf("drive_at %f\n",car->_speed_x);
+	printf("drive_at_ros %f\n",car->_speed_x);
 	int gear, i;
 	int idx = index - 1;
 	tControlCmd	*cmd = HCtx[idx]->CmdControl;
