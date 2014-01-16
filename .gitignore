@@ -1,0 +1,7 @@
+*~ 
+*.o
+*.so
+*.dsp
+*.depend
+*.def
+*.vcproj
