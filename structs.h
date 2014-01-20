@@ -34,6 +34,7 @@ struct Obstacle {
   uint8_t id;
   float x;
   float y;
+  float theta;
   float vX;
   float vY;
   float width;
