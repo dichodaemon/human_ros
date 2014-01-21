@@ -1381,9 +1381,6 @@ bool SendMessages(int index, tCarElt* car, tSituation *s)
 			o.width = s->cars[i]->_dimension_y;
 			o.height = s->cars[i]->_dimension_x;
 			count++;
-
-			if (s->cars[i]->index==10)
-				printf("yaw: %f,\t relative yaw: %f,\t x: %f,\t y: %f,\t ox: %f,\t oy: %f\n",s->cars[i]->_yaw, yaw,x,y, o.x,o.y);
 		}
 	}
 	
