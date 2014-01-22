@@ -24,7 +24,7 @@ MODULEDIR = drivers/${ROBOT}
 
 LIBS      =  -lplibul
 
-SOURCES   = ${ROBOT}.cpp pref.cpp facade.cpp semaphore.cpp
+SOURCES   = ${ROBOT}.cpp pref.cpp facade.cpp semaphore.cpp DataCollection.cpp
 
 SHIPDIR   = drivers/${ROBOT}
 
