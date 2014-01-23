@@ -342,6 +342,8 @@ static void initTrack(int index, tTrack* track, void *carHandle, void **carParmH
 
 void newrace(int index, tCarElt* car, tSituation *s)
 {
+	InitCarData(car);
+
 	int idx = index - 1;
 
 	if (HCtx[idx]->MouseControlUsed) {

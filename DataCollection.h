@@ -21,11 +21,14 @@
 #include <robot.h>
 
 #include "facade.h"
+#include "structs.h"
 
-
+bool InitCarData(tCarElt* car);
+bool SaveCarData(const CarParam& car, char* FileName);
 bool InitTrackData(tTrack* track);
+bool SaveTrackData(const TrackParam& track, char* FileName);
 float computeCurvature( tTrackSeg * segment );
-void nextCurve( tCarElt * car, Status & status );
 bool SendMessages(int index, tCarElt* car, tSituation *s);
 
+#endif
 

@@ -4,32 +4,57 @@
 #include <vector>
 #include <stdint.h>
 
+
+// car parameters (save to the file)
+struct CarParam
+{
+	float maxRPM;
+	float wheelRadius;
+	int nGear;
+	std::vector <float> gearRatio;
+	int gearOffset;
+	float width;
+	float length;
+};
+
+// track parameters (save to the file)
+struct TrackSeg
+{
+	int id;
+	float length;
+	float width;
+	float curvature;
+	float angle;
+	float distFromStart; // the distance from the first segment to the start point
+};
+
+struct TrackParam
+{
+	float length;
+	float width;
+	int nSeg;
+	std::vector <TrackSeg> segs;
+};
+
+// command parameters (send online)
 struct Command {
-  float steering;
-  float acceleration;
-  float brake;
-  int gear;
+	float steering;
+	float acceleration;
+	float brake;
+	int gear;
 };
 
+// status parameters about the host vehicle (send online)
 struct Status {
-  float rpm;
-  int gear;
-  float gearRatio;
-  float lowerGearRatio;
-  float maxRPM;
-  float wheelRadius;
-  float trackYaw;
-  float trackDistance;
-  float trackCurvature;
-  float trackWidth;
-  float nextCurvature;
-  float nextDistance;
-  float speed;
-  float yaw;
-  float x;
-  float y;
+	int gear;
+	float rpm;  
+	float speed;
+	float yaw;
+	float x;
+	float y;
 };
 
+// obstacles parameters (send online)
 struct Obstacle {
   uint8_t id;
   float x;
@@ -38,19 +63,17 @@ struct Obstacle {
   float vX;
   float vY;
   float width;
-  float height;
+  float length;
 };
+
+typedef std::vector<Obstacle> Obstacles;
 
 struct Buffer {
   Command command;
   Status status;
   uint8_t nObstacles;
-  Obstacle obstacles[100];
+  std::vector<Obstacle> obstacles;
 };
-
-
-typedef std::vector<Obstacle> Obstacles;
-
 
 #endif //STRUCTS_H_
 
