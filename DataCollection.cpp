@@ -1,7 +1,7 @@
 #include "DataCollection.h"
 
-#define CarDataFileName "tmpyyf_car.txt"
-#define TrackDataFileName "tmpyyf_track.txt"
+#define CarDataFileName "CarParam"
+#define TrackDataFileName "TrackParam"
 
 Facade facade( 6000 );
 tTrack* my_track;
@@ -98,7 +98,9 @@ bool InitCarData(tCarElt* car)
 	carParam.width = car->_dimension_y;
 	carParam.length = car->_dimension_x;
 
-	SaveCarData(carParam, CarDataFileName);
+	char FileNameFull[255];
+	sprintf(FileNameFull,"%s_%s.txt",CarDataFileName,car->_carName);
+	SaveCarData(carParam, FileNameFull);
 //	LoadCarData(carParam, CarDataFileName);		// for test
 	return true;
 }
@@ -206,7 +208,9 @@ bool InitTrackData(tTrack* track)
 
 	trackParam.nSeg = trackParam.segs.size();
 	
-	SaveTrackData(trackParam, TrackDataFileName);
+	char FileNameFull[255];
+	sprintf(FileNameFull,"%s_%s.txt",TrackDataFileName, track->name);
+	SaveTrackData(trackParam, FileNameFull);
 //	LoadTrackData(trackParam, TrackDataFileName);	// for test
 	return true;
 }
@@ -292,4 +296,8 @@ bool SendMessages(int index, tCarElt* car, tSituation *s)
 	return true;
 }
 
+Command GetCommandData()
+{
+	return facade.getCommand();
+}
 
