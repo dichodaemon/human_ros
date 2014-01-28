@@ -13,6 +13,7 @@ public:
   void setCommand( const Command & command );
   void setStatus( const Status & status );
   void setObstacles( const Obstacles & obstacles );
+  void setBuffer( const Buffer & buffer);
 
 private:
   int segmentId_;

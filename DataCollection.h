@@ -19,14 +19,19 @@
 #include <raceman.h>
 #include <robottools.h>
 #include <robot.h>
+#include <string.h>
 
 #include "facade.h"
 #include "structs.h"
 
 bool InitCarData(tCarElt* car);
 bool SaveCarData(const CarParam& car, char* FileName);
+bool LoadCarData(CarParam& car, char* FileName);
+
 bool InitTrackData(tTrack* track);
 bool SaveTrackData(const TrackParam& track, char* FileName);
+bool LoadTrackData(TrackParam& track, char* FileName);
+
 float computeCurvature( tTrackSeg * segment );
 bool SendMessages(int index, tCarElt* car, tSituation *s);
 

@@ -1,11 +1,20 @@
 #include "DataCollection.h"
 
+#define CarDataFileName "tmpyyf_car.txt"
+#define TrackDataFileName "tmpyyf_track.txt"
+
 Facade facade( 6000 );
 tTrack* my_track;
 tCarElt* my_car;
 
 TrackParam trackParam;
 CarParam carParam;
+
+const int MaxStringLength = 100;
+const int nCarStr = 7;
+const char carStr[nCarStr][MaxStringLength] = {"maxRPM", "wheelRadius", "nGear", "gearRatio", "gearOffset", "width", "length"};
+const int nTrackStr = 10;
+const char trackStr[nTrackStr][MaxStringLength] = {"length", "width", "nSeg", "segs", "Sid", "Slength", "Swidth", "Scurvature", "Sangle", "SdistFromStart"};
 
 bool SaveCarData(const CarParam& car, char* FileName)
 {
@@ -20,17 +29,58 @@ bool SaveCarData(const CarParam& car, char* FileName)
 	fprintf(fp,"wheelRadius: %f\n", car.wheelRadius);
 	fprintf(fp,"nGear: %d\n", car.nGear);
 
-	fprintf(fp,"gearRatio: ");
-	for (int i=0; i<car.nGear; i++)	
+	fprintf(fp,"gearRatio: [");
+	for (int i=0; i<car.nGear-1; i++)	
 		fprintf(fp,"%f\t", car.gearRatio[i]);
-	fprintf(fp,"\n");
+	fprintf(fp,"%f]\n", car.gearRatio[car.nGear-1]);
 	
 	fprintf(fp,"gearOffset: %d\n", car.gearOffset);
 	fprintf(fp,"width: %f\n", car.width);
 	fprintf(fp,"length: %f\n", car.length);
 	
-	fclose(fp);	
+	fclose(fp);
 
+	return true;
+}
+
+bool LoadCarData(CarParam& car, char* FileName)
+{
+	FILE* fp = fopen(FileName, "r");
+	if (fp==NULL)
+	{
+		printf("Can't load Car Param File with name \"%s\"\n", FileName);
+		return false;
+	}
+	
+	char tmpStr[255];
+	int i;
+	while (fscanf(fp, "%s", tmpStr)!=EOF)
+	{
+		for (i=0; i<nCarStr; i++)
+		{
+			if (strncmp(tmpStr, carStr[i], strlen(carStr[i])) == 0)
+				break;
+		}
+		switch (i)
+		{
+			case 0: fscanf(fp,"%f\n", &car.maxRPM); break;
+			case 1: fscanf(fp,"%f\n", &car.wheelRadius); break;
+			case 2: fscanf(fp,"%d\n", &car.nGear); break;
+			case 3: 
+				car.gearRatio.resize(car.nGear);
+				fscanf(fp,"[");
+				for (i=0; i<car.nGear; i++)
+					fscanf(fp,"%f", &car.gearRatio[i]);
+				fscanf(fp,"\n");
+				break;
+			case 4: fscanf(fp,"%d\n", &car.gearOffset); break;
+			case 5: fscanf(fp,"%f\n", &car.width); break;
+			case 6: fscanf(fp, "%f\n", &car.length); break;
+			default: break;
+		}
+	}
+	fclose(fp);
+//	SaveCarData(car, "tmpyyf_car_load.txt");		// for test
 	return true;
 }
 
@@ -48,7 +98,8 @@ bool InitCarData(tCarElt* car)
 	carParam.width = car->_dimension_y;
 	carParam.length = car->_dimension_x;
 
-	SaveCarData(carParam, "tmpyyf_car.txt");
+	SaveCarData(carParam, CarDataFileName);
+//	LoadCarData(carParam, CarDataFileName);		// for test
 	return true;
 }
 
@@ -61,27 +112,65 @@ bool SaveTrackData(const TrackParam& track, char* FileName)
 		return false;
 	}
 	
-	fprintf(fp, "length: %f\n", track.length);
-	fprintf(fp, "width: %f\n", track.width);
-	fprintf(fp, "nSeg: %d\n", track.nSeg);
 
-	fprintf(fp, "Segs:\n");
+	fprintf(fp, "# Track parameters: length(float), width(float), nSeg(int)\n");
+	fprintf(fp, "%f\t%f\t%f\n", track.length, track.width, track.nSeg);
+
+	fprintf(fp, "# Segs: One segment per line\n");
+	fprintf(fp, "# Segment parameters: id(int), length, width, curvature, angle, distFromStart\n");
+
 
 	TrackSeg seg;
 	for (int i=0; i<track.nSeg; i++)
 	{
 		seg = track.segs[i];
-		fprintf(fp, "Sid: %d\n", seg.id);
-		fprintf(fp, "Slength: %f\n", seg.length);
-		fprintf(fp, "Swidth: %f\n", seg.width);
-		fprintf(fp, "Scurvature: %f\n", seg.curvature);
-		fprintf(fp, "Sangle: %f\n", seg.angle);
-		fprintf(fp, "SdistFromStart: %f\n", seg.distFromStart);
+		fprintf(fp, "%d\t%f\t%f\t%f\t%f\t%f\n", seg.id, seg.length, seg.width, seg.curvature, seg.angle, seg.distFromStart);
 	}
 
 	fclose(fp);
 	return true;
 }
+
+bool LoadTrackData(TrackParam& track, char* FileName)
+{
+	FILE* fp = fopen(FileName, "r");
+	if (fp==NULL)
+	{
+		printf("Can't load Track Param File with name \"%s\"\n", FileName);
+		return false;
+	}
+	
+	char tmpStr[255];
+	int i;
+	TrackSeg seg;
+	int flag = 0;
+	const int iOffset = -4;
+	const int enoughFlag = 0x3F;
+
+	track.segs.clear();
+	int step = 0;
+	while (fgets(tmpStr, strlen(tmpStr), fp)!=NULL)
+	{
+		if (tmpStr[0]=='#')
+			continue;
+
+		if (step==0)	// track parameters
+		{
+			fscanf(fp,"%f%f%d\n", &track.length, &track.width, &track.nSeg);
+			step = 1;
+		}else
+		{
+			fscanf(fp,"%d%f%f%f%f%f\n", &seg.id, &seg.length, &seg.width, &seg.curvature, &seg.angle, &seg.distFromStart);
+			if (step==track.nSeg)
+				break;
+			step++;
+		}
+	}
+	fclose(fp);
+//	SaveTrackData(track, "tmpyyf_track_load.txt");		//for test
+	return true;
+}
+
 
 bool InitTrackData(tTrack* track)
 {
@@ -111,14 +200,14 @@ bool InitTrackData(tTrack* track)
 		trackSeg.distFromStart = seg->lgfromstart;
 		trackParam.segs.push_back(trackSeg);
 		totalLength += seg->length;
-		printf("totalLengh: %f\n", totalLength);
+		//printf("totalLengh: %f\n", totalLength);
 		seg = seg->next;
 	}while (seg->id != 0);
 
 	trackParam.nSeg = trackParam.segs.size();
 	
-	SaveTrackData(trackParam, "tmpyyf_track.txt");
-
+	SaveTrackData(trackParam, TrackDataFileName);
+//	LoadTrackData(trackParam, TrackDataFileName);	// for test
 	return true;
 }
 
@@ -136,7 +225,6 @@ float computeCurvature( tTrackSeg * segment )
 
 bool SendMessages(int index, tCarElt* car, tSituation *s)
 {
-	return true;
 	// command
 	Command command;
 	command.steering = car->ctrl.steer;
@@ -190,13 +278,16 @@ bool SendMessages(int index, tCarElt* car, tSituation *s)
 	buffer.command = command;
 	buffer.status = status;
 	buffer.nObstacles = obstacles.size();
-	buffer.obstacles = obstacles;
+
+	for (int i=0; i<buffer.nObstacles; i++)
+		buffer.obstacles[i] = obstacles[i];
 
 	//printf("\tobstacles over\n");
 
 	//facade.setCommand( command );
 	//facade.setStatus( status );
 	//facade.setObstacles( obstacles );
+	facade.setBuffer (buffer);
 
 	return true;
 }

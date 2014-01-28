@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdint.h>
 
+const int MAX_OBSTACLE_NUMBER = 100;
 
 // car parameters (save to the file)
 struct CarParam
@@ -45,7 +46,7 @@ struct Command {
 };
 
 // status parameters about the host vehicle (send online)
-struct Status {
+/*struct Status {
 	int gear;
 	float rpm;  
 	float speed;
@@ -53,8 +54,17 @@ struct Status {
 	float x;
 	float y;
 };
+*/
 
-// obstacles parameters (send online)
+struct Status {
+  float rpm;
+  int gear;
+  float speed;
+  float yaw;
+  float x;
+  float y;
+};
+
 struct Obstacle {
   uint8_t id;
   float x;
@@ -72,7 +82,7 @@ struct Buffer {
   Command command;
   Status status;
   uint8_t nObstacles;
-  std::vector<Obstacle> obstacles;
+  Obstacle obstacles[100];
 };
 
 #endif //STRUCTS_H_

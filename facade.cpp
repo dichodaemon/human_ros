@@ -57,3 +57,17 @@ Facade::setObstacles( const Obstacles & obstacles )
   semaphore_.post();
 }
 
+void
+Facade::setBuffer( const Buffer & buffer )
+{
+  semaphore_.wait();
+  buffer_->command = buffer.command;
+  buffer_->status = buffer.status;
+  buffer_->nObstacles = buffer.nObstacles;
+  for ( int i = 0; i < buffer_->nObstacles; ++i ) {
+    buffer_->obstacles[i] = buffer.obstacles[i];
+  }
+  semaphore_.post();
+}
+
+
