@@ -241,15 +241,42 @@ bool SendMessages(int index, tCarElt* car, tSituation *s)
 
 	status.gear = car->priv.gear;
 	status.rpm = car->priv.enginerpm;
-	status.speed = sqrt(car->_speed_x*car->_speed_x + car->_speed_y*car->_speed_y);
-	status.yaw = car->_yaw - RtTrackSideTgAngleL(&car->_trkPos);
-	NORM_PI_PI(status.yaw);
 	status.x = RtGetDistFromStart(car);
 	status.y = car->_trkPos.toMiddle;
+	status.yaw = car->_yaw - RtTrackSideTgAngleL(&car->_trkPos);
+	NORM_PI_PI(status.yaw);
+	status.speed = sqrt(car->_speed_x*car->_speed_x + car->_speed_y*car->_speed_y);
 	
 	// obstacles
 	Obstacles obstacles( s->_ncars - 1 );
 	int count = 0;
+
+	// obstacles poses are relative to the track 
+	for ( int i = 0; i <= obstacles.size(); ++i )
+	{
+		if ( s->cars[i]->index != car->index )
+		{
+			float x = RtGetDistFromStart(s->cars[i]);
+			float y = s->cars[i]->_trkPos.toMiddle;
+			float yaw = s->cars[i]->_yaw - RtTrackSideTgAngleL( &(s->cars[i]->_trkPos) );
+			NORM_PI_PI( yaw );
+			float speed = sqrt(s->cars[i]->_speed_x * s->cars[i]->_speed_x
+							 + s->cars[i]->_speed_y * s->cars[i]->_speed_y);
+			Obstacle & o = obstacles[count];
+			o.id = s->cars[i]->index;
+			o.x = x;
+			o.y = y;
+			o.theta = yaw;
+			o.vX = speed * cos( yaw );
+			o.vY = speed * sin( yaw );
+			o.width = s->cars[i]->_dimension_y;
+			o.length = s->cars[i]->_dimension_x;
+			count++;
+		}
+	}
+
+	// obstacles poses are relative to the host vehicle (not used)
+	/* 
 	for ( int i = 0; i <= obstacles.size(); ++i )
 	{
 		if ( s->cars[i]->index != car->index )
@@ -277,6 +304,7 @@ bool SendMessages(int index, tCarElt* car, tSituation *s)
 			count++;
 		}
 	}
+	*/
 	
 	Buffer buffer;
 	buffer.command = command;
