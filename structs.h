@@ -16,6 +16,7 @@ struct CarParam
 	int gearOffset;
 	float width;
 	float length;
+	float steerLock;
 };
 
 // track parameters (save to the file)
@@ -26,7 +27,8 @@ struct TrackSeg
 	float width;
 	float curvature;
 	float angle;
-	float distFromStart; // the distance from the first segment to the start point
+	float distFromStart;	// the distance from the first segment to the start point
+	float allowedSpeed;		// Cheat from the simulator
 };
 
 struct TrackParam

@@ -35,6 +35,7 @@ bool LoadTrackData(TrackParam& track, char* FileName);
 float computeCurvature( tTrackSeg * segment );
 bool SendMessages(int index, tCarElt* car, tSituation *s);
 Command GetCommandData();
+float GetAllowedSpeed(tTrackSeg *segment);
 
 #endif
 

@@ -11,8 +11,8 @@ TrackParam trackParam;
 CarParam carParam;
 
 const int MaxStringLength = 100;
-const int nCarStr = 7;
-const char carStr[nCarStr][MaxStringLength] = {"maxRPM", "wheelRadius", "nGear", "gearRatio", "gearOffset", "width", "length"};
+const int nCarStr = 8;
+const char carStr[nCarStr][MaxStringLength] = {"maxRPM", "wheelRadius", "nGear", "gearRatio", "gearOffset", "width", "length", "steerLock"};
 const int nTrackStr = 10;
 const char trackStr[nTrackStr][MaxStringLength] = {"length", "width", "nSeg", "segs", "Sid", "Slength", "Swidth", "Scurvature", "Sangle", "SdistFromStart"};
 
@@ -37,7 +37,8 @@ bool SaveCarData(const CarParam& car, char* FileName)
 	fprintf(fp,"gearOffset: %d\n", car.gearOffset);
 	fprintf(fp,"width: %f\n", car.width);
 	fprintf(fp,"length: %f\n", car.length);
-	
+	fprintf(fp,"steerLock: %f\n", car.steerLock);
+
 	fclose(fp);
 
 	return true;
@@ -75,7 +76,8 @@ bool LoadCarData(CarParam& car, char* FileName)
 				break;
 			case 4: fscanf(fp,"%d\n", &car.gearOffset); break;
 			case 5: fscanf(fp,"%f\n", &car.width); break;
-			case 6: fscanf(fp, "%f\n", &car.length); break;
+			case 6: fscanf(fp,"%f\n", &car.length); break;
+			case 7: fscanf(fp,"%f\n", &car.steerLock); break;
 			default: break;
 		}
 	}
@@ -97,11 +99,12 @@ bool InitCarData(tCarElt* car)
 	carParam.gearOffset = car->_gearOffset;
 	carParam.width = car->_dimension_y;
 	carParam.length = car->_dimension_x;
+	carParam.steerLock = car->_steerLock;
 
 	char FileNameFull[255];
 	sprintf(FileNameFull,"%s_%s.txt",CarDataFileName,car->_carName);
 	SaveCarData(carParam, FileNameFull);
-//	LoadCarData(carParam, CarDataFileName);		// for test
+//	LoadCarData(carParam, FileNameFull);		// for test
 	return true;
 }
 
@@ -119,14 +122,14 @@ bool SaveTrackData(const TrackParam& track, char* FileName)
 	fprintf(fp, "%f\t%f\t%f\n", track.length, track.width, track.nSeg);
 
 	fprintf(fp, "# Segs: One segment per line\n");
-	fprintf(fp, "# Segment parameters: id(int), length, width, curvature, angle, distFromStart\n");
+	fprintf(fp, "# Segment parameters: id(int), length, width, curvature, angle, distFromStart, allowedSpeed\n");
 
 
 	TrackSeg seg;
 	for (int i=0; i<track.nSeg; i++)
 	{
 		seg = track.segs[i];
-		fprintf(fp, "%d\t%f\t%f\t%f\t%f\t%f\n", seg.id, seg.length, seg.width, seg.curvature, seg.angle, seg.distFromStart);
+		fprintf(fp, "%d\t%f\t%f\t%f\t%f\t%f\t%f\n", seg.id, seg.length, seg.width, seg.curvature, seg.angle, seg.distFromStart, seg.allowedSpeed);
 	}
 
 	fclose(fp);
@@ -162,14 +165,14 @@ bool LoadTrackData(TrackParam& track, char* FileName)
 			step = 1;
 		}else
 		{
-			fscanf(fp,"%d%f%f%f%f%f\n", &seg.id, &seg.length, &seg.width, &seg.curvature, &seg.angle, &seg.distFromStart);
+			fscanf(fp,"%d%f%f%f%f%f%f\n", &seg.id, &seg.length, &seg.width, &seg.curvature, &seg.angle, &seg.distFromStart,&seg.allowedSpeed);
 			if (step==track.nSeg)
 				break;
 			step++;
 		}
 	}
 	fclose(fp);
-//	SaveTrackData(track, "tmpyyf_track_load.txt");		//for test
+	SaveTrackData(track, "tmpyyf_track_load.txt");		//for test
 	return true;
 }
 
@@ -200,6 +203,7 @@ bool InitTrackData(tTrack* track)
 		trackSeg.curvature = computeCurvature (seg);
 		trackSeg.angle = seg->arc;
 		trackSeg.distFromStart = seg->lgfromstart;
+		trackSeg.allowedSpeed = GetAllowedSpeed(seg);
 		trackParam.segs.push_back(trackSeg);
 		totalLength += seg->length;
 		//printf("totalLengh: %f\n", totalLength);
@@ -211,7 +215,7 @@ bool InitTrackData(tTrack* track)
 	char FileNameFull[255];
 	sprintf(FileNameFull,"%s_%s.txt",TrackDataFileName, track->name);
 	SaveTrackData(trackParam, FileNameFull);
-//	LoadTrackData(trackParam, TrackDataFileName);	// for test
+//	LoadTrackData(trackParam, FileNameFull);	// for test
 	return true;
 }
 
@@ -226,9 +230,10 @@ float computeCurvature( tTrackSeg * segment )
   }
 }
 
-
 bool SendMessages(int index, tCarElt* car, tSituation *s)
 {
+
+	printf("Dist to start: %f\n", car->_distFromStartLine);
 	// command
 	Command command;
 	command.steering = car->ctrl.steer;
@@ -321,6 +326,12 @@ bool SendMessages(int index, tCarElt* car, tSituation *s)
 	//facade.setObstacles( obstacles );
 	facade.setBuffer (buffer);
 
+	// test the speed
+	//FILE* fpForSpeed;
+	//fpForSpeed = fopen("tmpSpeed.txt","a");
+	//fprintf(fpForSpeed, "%f, %d\n", status.speed, status.gear);
+	//fclose(fpForSpeed);
+
 	return true;
 }
 
@@ -329,3 +340,13 @@ Command GetCommandData()
 	return facade.getCommand();
 }
 
+
+float GetAllowedSpeed(tTrackSeg *segment)
+{
+    if (segment->type == TR_STR) {
+        return 500.0;
+    } else {
+        float mu = segment->surface->kFriction;
+        return sqrt(mu*G*segment->radius);
+    }
+}
